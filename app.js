@@ -147,8 +147,8 @@ async function loadModels() {
     loader.load(url, res, undefined, rej));
 
   try {
-    const playerGLTF = await load('./Record player.glb');
-    setupTurntableModel(playerGLTF.scene);
+    const turntableGLTF = await load('./turntable.glb');
+    setupTurntableModel(turntableGLTF.scene);
 
   } catch (err) {
     console.warn('GLB load error — using fallback geometry', err);
