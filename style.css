@@ -7,7 +7,7 @@
 
 /* ── Design tokens ── */
 :root {
-  --bg:           #C5CDD8;
+  --bg:           #343B46;
   --text:         #0E0E1C;
   --text-mid:     #4E5370;
   --text-soft:    #8A8FA8;
@@ -33,22 +33,45 @@ html { scroll-behavior: smooth; }
 /* ── Body ── */
 body {
   font-family: var(--font);
-  background-color: var(--bg);
+  background: transparent;
   color: var(--text);
   overflow-x: hidden;
   min-height: 100vh;
 }
 
-/* ── Grid background (+) ── */
-body::before {
-  content: '';
+/* ── WebGL Shader Background & Base Texture Layers ── */
+#bg-base-layer {
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cline x1='28' y1='20' x2='28' y2='36' stroke='%2378829a' stroke-width='1.1' stroke-linecap='round'/%3E%3Cline x1='20' y1='28' x2='36' y2='28' stroke='%2378829a' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
   pointer-events: none;
-  z-index: 0;
-  opacity: 0.5;
+  background-color: #282A2E;
+  background-image: 
+    linear-gradient(135deg, #9BA3AE, #282A2E),
+    url('liquid.png?v=2');
+  background-blend-mode: overlay;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
+
+#bg-shader-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -9;
+  pointer-events: none;
+  display: block;
+  filter: blur(28px); /* blurs WebGL waves to look like organic liquid silk */
+  opacity: 0.42; /* subtle blending with base background */
+  mix-blend-mode: screen; /* brightens the dark silk folds with animated cyan/blue flows */
+}
+
+
 
 /* ── Three.js canvas — fills its standalone container ── */
 #scene-canvas {
@@ -56,7 +79,7 @@ body::before {
   top: 0; left: 0;
   width: 100%; height: 100%;
   display: block;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 /* ── UI overlay ── */
@@ -75,7 +98,7 @@ body::before {
 #loading-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg);
+  background: #111316;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -89,18 +112,150 @@ body::before {
   pointer-events: none;
   visibility: hidden;
 }
-.ld-disc {
-  width: 64px; height: 64px;
+.liquid-loader-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 32px;
+  height: 160px;
+  transition: opacity 0.5s ease;
+}
+.liquid-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+}
+.liquid-droplet {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle at 50% 50%,
-    #1a0610 0px, #8b1840 0.6px, #1a0610 1.2px);
-  animation: spin 1.1s linear infinite;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  margin-bottom: 12px;
+  transition: all 0.5s ease-out;
+  filter: blur(0.5px);
+  opacity: 0;
+  transform: translateY(10px) scale(0.5);
+}
+.liquid-bar {
+  width: 40px;
+  border-radius: 9999px;
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+  transform-origin: bottom;
+  filter: blur(0.3px);
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
+}
+.liquid-tension {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.liquid-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(to top, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  pointer-events: none;
+}
+.liquid-shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+  width: 140%;
+  left: -20%;
+  pointer-events: none;
+}
+.liquid-bubble {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.liquid-base {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 8px;
+  transition: all 0.3s;
+  filter: blur(0.2px);
+}
+
+/* Color gradients and shadows based on colors array indices */
+.liquid-col[data-index="0"] .liquid-droplet,
+.liquid-col[data-index="0"] .liquid-base {
+  background: linear-gradient(to right, #a855f7, #ec4899);
+}
+.liquid-col[data-index="0"] .liquid-bar {
+  background: linear-gradient(to top, #a855f7, #ec4899);
+}
+
+.liquid-col[data-index="1"] .liquid-droplet,
+.liquid-col[data-index="1"] .liquid-base {
+  background: linear-gradient(to right, #3b82f6, #a855f7);
+}
+.liquid-col[data-index="1"] .liquid-bar {
+  background: linear-gradient(to top, #3b82f6, #a855f7);
+}
+
+.liquid-col[data-index="2"] .liquid-droplet,
+.liquid-col[data-index="2"] .liquid-base {
+  background: linear-gradient(to right, #22d3ee, #3b82f6);
+}
+.liquid-col[data-index="2"] .liquid-bar {
+  background: linear-gradient(to top, #22d3ee, #3b82f6);
+}
+
+.liquid-col[data-index="3"] .liquid-droplet,
+.liquid-col[data-index="3"] .liquid-base {
+  background: linear-gradient(to right, #4ade80, #22d3ee);
+}
+.liquid-col[data-index="3"] .liquid-bar {
+  background: linear-gradient(to top, #4ade80, #22d3ee);
+}
+
+.liquid-col[data-index="4"] .liquid-droplet,
+.liquid-col[data-index="4"] .liquid-base {
+  background: linear-gradient(to right, #facc15, #4ade80);
+}
+.liquid-col[data-index="4"] .liquid-bar {
+  background: linear-gradient(to top, #facc15, #4ade80);
+}
+
+.liquid-col[data-index="5"] .liquid-droplet,
+.liquid-col[data-index="5"] .liquid-base {
+  background: linear-gradient(to right, #fb923c, #facc15);
+}
+.liquid-col[data-index="5"] .liquid-bar {
+  background: linear-gradient(to top, #fb923c, #facc15);
+}
+
+.liquid-col[data-index="6"] .liquid-droplet,
+.liquid-col[data-index="6"] .liquid-base {
+  background: linear-gradient(to right, #ef4444, #fb923c);
+}
+.liquid-col[data-index="6"] .liquid-bar {
+  background: linear-gradient(to top, #ef4444, #fb923c);
 }
 .ld-text {
   font-size: 14px;
   color: var(--text-mid);
   letter-spacing: 0.3px;
+  transition: opacity 0.5s ease;
+}
+.liquid-loader-container.fade-out,
+.ld-text.fade-out {
+  opacity: 0;
+  pointer-events: none;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -119,7 +274,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--text);
+  color: var(--white);
   text-decoration: none;
 }
 .logo-mark {
@@ -163,11 +318,10 @@ body::before {
    MAIN GRID
    ══════════════════════════════════════════════════════ */
 .main-grid {
-  display: grid;
-  grid-template-columns: 1fr;   /* single column — turntable is fixed/standalone */
-  flex: 1;
-  padding: 24px 44px 0;
-  max-width: 52%;               /* left panel stays in its half, turntable floats free */
+  display: flex;
+  justify-content: space-between;
+  padding: 40px 44px 0;
+  width: 100%;
 }
 
 /* ── Left panel ── */
@@ -175,9 +329,8 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding-right: 40px;
-  padding-bottom: 40px;
-  pointer-events: none;
+  width: 350px;
+  pointer-events: auto;
 }
 
 /* Hero */
@@ -187,28 +340,98 @@ body::before {
   font-weight: 700;
   line-height: 1.0;
   letter-spacing: -2.5px;
-  color: var(--text);
+  color: var(--white);
 }
 .hero-sub {
   margin-top: 14px;
   font-size: 15px;
   font-weight: 400;
-  color: var(--text-mid);
+  color: #C5CDD8;
+}
+
+/* ── Add Vinyl Button & Noise Gradient Wrapper ── */
+.noise-btn-wrap {
+  width: 220px; /* larger width */
+  padding: 4px; /* thinner stroke (originally 8px / p-2) */
+  border-radius: 9999px;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, rgb(255, 100, 150), rgb(100, 150, 255), rgb(255, 200, 100), rgb(255, 100, 150));
+  background-blend-mode: overlay;
+  background-size: 120px 120px, 300% 300%;
+  animation: noise-gradient-anim 6s linear infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes noise-gradient-anim {
+  0% {
+    background-position: 0px 0px, 0% 50%;
+  }
+  50% {
+    background-position: 8px 15px, 100% 50%;
+  }
+  100% {
+    background-position: 0px 0px, 0% 50%;
+  }
+}
+
+.noise-btn {
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(to right, #000000, #000000, #171717); /* dark:from-black dark:via-black dark:to-neutral-900 */
+  padding: 12px 24px; /* Larger padding for large size */
+  font-family: var(--font);
+  font-size: 16px; /* Larger font size */
+  font-weight: 600; /* Bolder text */
+  color: #ffffff; /* dark:text-white */
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15), /* top inner highlight for tactile look */
+    0px 1px 0px 0px rgb(38, 38, 38); /* dark:shadow-[0px_1px_0px_0px_var(--color-neutral-800)] */
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.noise-btn:hover {
+  background: linear-gradient(to right, #0a0a0a, #0a0a0a, #1f1f1f);
+}
+.noise-btn:active {
+  transform: scale(0.98); /* active:scale-98 */
 }
 
 /* ══════════════════════════════════════════════════════
    SEARCH
    ══════════════════════════════════════════════════════ */
-.search-module { position: relative; pointer-events: auto; }
-
+.search-module { 
+  position: fixed; 
+  bottom: 40px; 
+  right: 24px;
+  width: calc(50vw - 24px); 
+  display: flex;
+  justify-content: center;
+  pointer-events: none; /* Let clicks pass through except on search-box */
+  z-index: 100;
+}
 .search-box {
+  width: 400px;
+  max-width: 100%;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 12px;
   background: var(--white);
   border: 1.5px solid var(--card-border);
-  border-radius: 16px;
-  padding: 17px 20px;
+  border-radius: 30px; /* Pill shape */
+  padding: 12px 20px;
   box-shadow: var(--shadow-md);
   transition: border-color 0.25s, box-shadow 0.25s;
 }
@@ -360,16 +583,20 @@ body::before {
 }
 
 /* ══════════════════════════════════════════════════════
-   TURNTABLE CONTAINER — standalone, fixed, far right
+   RIGHT PANEL / TURNTABLE CONTAINER
    ══════════════════════════════════════════════════════ */
+.right-panel {
+  display: contents; /* Removes layout constraints, lets children be fixed/absolute */
+}
+
 #turntable-container {
   position: fixed;
-  right: 24px;          /* 24px margin from the right edge */
+  right: 24px;
   top: 0;
   height: 100vh;
-  width: calc(50vw - 24px);   /* fills the right half of the screen */
+  width: calc(50vw - 24px);
   z-index: 1;
-  pointer-events: none;  /* let clicks pass through to UI below */
+  pointer-events: auto;
 }
 .turntable-chip {
   position: absolute;
@@ -408,91 +635,68 @@ body::before {
 }
 
 /* ══════════════════════════════════════════════════════
-   HISTORY
+   HISTORY / VINYL STACK
    ══════════════════════════════════════════════════════ */
 .history-section {
-  padding: 28px 44px 56px;
-  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  margin-top: 40px;
+  position: relative;
+  z-index: 20;
 }
 .history-hdr {
-  display: flex; align-items: center; gap: 14px;
-  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  width: 140px; /* Match cover width */
 }
-.history-title {
-  font-size: clamp(30px, 3vw, 44px);
-  font-weight: 700; letter-spacing: -1.5px; color: var(--text);
-}
-.history-badge {
-  font-size: 13px; color: var(--text-mid);
-  background: rgba(0,0,0,0.07);
-  border-radius: 20px; padding: 4px 13px;
+.history-title { font-size: 16px; font-weight: 600; color: var(--white); }
+.history-badge { display: none; } /* Hide badge to match screenshot */
+.history-empty {
+  font-size: 13px;
+  color: #C5CDD8;
+  opacity: 0.8;
+  line-height: 1.5;
 }
 .history-row {
   display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  padding-bottom: 12px;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+  flex-direction: column;
   align-items: flex-start;
 }
-.history-row::-webkit-scrollbar { display: none; }
-.history-empty {
-  font-size: 14px; color: var(--text-soft); padding: 8px 0;
-}
 
 
-/* ── History card — bare vinyl disc, NO sleeve wrapper ── */
+/* ── History card — square cover art ── */
 .hist-card {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 9px;
+  position: relative;
+  width: 140px;
+  height: 140px;
   cursor: pointer;
-  scroll-snap-align: start;
   outline: none;
-  /* deliberately no background / border / box-shadow — sleeves provided separately */
-  transition: transform 0.32s var(--ease-cin);
+  border-radius: 4px; /* Slightly sharper like album covers */
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s;
 }
-.hist-card:hover  { transform: translateY(-8px); }
-.hist-card:focus-visible .hist-vinyl {
+.hist-card + .hist-card {
+  margin-top: -120px; /* Tight overlap when not hovered */
+}
+.hist-card:hover { 
+  transform: translateX(30px) translateY(-5px) rotate(3deg) scale(1.05) !important; 
+  box-shadow: -8px 12px 24px rgba(0,0,0,0.4);
+  z-index: 100 !important;
+}
+.hist-card:focus-visible {
   box-shadow: 0 0 0 3px var(--text), 0 6px 24px rgba(0,0,0,0.4);
 }
+.hist-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
 
-/* 3D vinyl disc */
-.hist-vinyl {
-  width: 128px; height: 128px;
-  border-radius: 50%;
-  position: relative;
-  flex-shrink: 0;
-  background: repeating-radial-gradient(circle at 50% 50%,
-    #1a0610 0px, #8b1840 0.55px, #1a0610 1.1px);
-  transform: perspective(500px) rotateX(22deg) rotateY(-8deg);
-  transition: transform 0.35s var(--ease-cin);
-}
-.hist-card:hover .hist-vinyl {
-  transform: perspective(500px) rotateX(10deg) rotateY(0deg);
-}
-.hist-label {
-  position: absolute; inset: 24%;
-  border-radius: 50%; overflow: hidden;
-  background: var(--vinyl-lbl);
-}
-.hist-label img {
-  width: 100%; height: 100%;
-  object-fit: cover; opacity: 0.85;
-  mix-blend-mode: multiply;
-}
-.hist-hole {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 11px; height: 11px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #0a0008;
-  z-index: 2;
-}
 .hist-name {
   font-size: 12px; font-weight: 500; color: var(--text);
   max-width: 128px; text-align: center;
@@ -523,7 +727,7 @@ body::before {
   border-radius: 50%;
   position: relative;
   background: repeating-radial-gradient(circle at 50% 50%,
-    #1a0610 0px, #8b1840 0.55px, #1a0610 1.1px);
+    #222000 0px, #CDBF00 0.55px, #222000 1.1px);
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 .fly-disc.spinning { animation: spin 0.9s linear infinite; }
@@ -536,7 +740,8 @@ body::before {
 }
 .fly-label img {
   width: 100%; height: 100%;
-  object-fit: cover; opacity: 0.85;
+  object-fit: cover;
+  opacity: 1;
 }
 .fly-hole {
   position: absolute;
@@ -548,12 +753,24 @@ body::before {
   z-index: 2;
 }
 
-/* ── YouTube wrapper ── */
+/* ── YouTube Container (behind WebGL canvas, masked into a circle) ── */
 #yt-wrap {
-  position: fixed;
-  top: -9999px; left: -9999px;
-  width: 1px; height: 1px;
-  overflow: hidden; pointer-events: none;
+  position: absolute;
+  top: 0; left: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s;
+  transform-origin: top left;
+}
+#youtube-player {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200%; height: 200%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 /* ══════════════════════════════════════════════════════
