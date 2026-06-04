@@ -185,8 +185,17 @@ function addShadowPlane() {
    ══════════════════════════════════════════════════════ */
 async function loadModels() {
   const loader = new GLTFLoader();
+  const progressEl = document.getElementById('loader-progress');
   const load = url => new Promise((res, rej) =>
-    loader.load(url, res, undefined, rej));
+    loader.load(url, res, (xhr) => {
+      if (xhr.total) {
+        const percent = Math.round((xhr.loaded / xhr.total) * 100);
+        if (progressEl) progressEl.textContent = `Loading 3D Scene: ${percent}%`;
+      } else {
+        const kb = Math.round(xhr.loaded / 1024);
+        if (progressEl) progressEl.textContent = `Loading: ${kb} KB`;
+      }
+    }, rej));
 
   try {
     const playerGLTF = await load('./Music Box22.glb');
