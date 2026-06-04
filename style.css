@@ -98,7 +98,7 @@ body {
 #loading-overlay {
   position: fixed;
   inset: 0;
-  background: #111316;
+  background: #08090b;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -136,6 +136,8 @@ body {
   filter: blur(0.5px);
   opacity: 0;
   transform: translateY(10px) scale(0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .liquid-bar {
   width: 40px;
@@ -145,7 +147,8 @@ body {
   overflow: hidden;
   transform-origin: bottom;
   filter: blur(0.3px);
-  box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .liquid-tension {
   position: absolute;
@@ -188,63 +191,65 @@ body {
   margin-top: 8px;
   transition: all 0.3s;
   filter: blur(0.2px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Color gradients and shadows based on colors array indices */
 .liquid-col[data-index="0"] .liquid-droplet,
 .liquid-col[data-index="0"] .liquid-base {
-  background: linear-gradient(to right, #a855f7, #ec4899);
+  background: linear-gradient(to right, rgba(168, 85, 247, 0.95), rgba(236, 72, 153, 0.95));
 }
 .liquid-col[data-index="0"] .liquid-bar {
-  background: linear-gradient(to top, #a855f7, #ec4899);
+  background: linear-gradient(to top, rgba(168, 85, 247, 0.8), rgba(236, 72, 153, 0.8));
 }
 
 .liquid-col[data-index="1"] .liquid-droplet,
 .liquid-col[data-index="1"] .liquid-base {
-  background: linear-gradient(to right, #3b82f6, #a855f7);
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.95), rgba(168, 85, 247, 0.95));
 }
 .liquid-col[data-index="1"] .liquid-bar {
-  background: linear-gradient(to top, #3b82f6, #a855f7);
+  background: linear-gradient(to top, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8));
 }
 
 .liquid-col[data-index="2"] .liquid-droplet,
 .liquid-col[data-index="2"] .liquid-base {
-  background: linear-gradient(to right, #22d3ee, #3b82f6);
+  background: linear-gradient(to right, rgba(34, 211, 238, 0.95), rgba(59, 130, 246, 0.95));
 }
 .liquid-col[data-index="2"] .liquid-bar {
-  background: linear-gradient(to top, #22d3ee, #3b82f6);
+  background: linear-gradient(to top, rgba(34, 211, 238, 0.8), rgba(59, 130, 246, 0.8));
 }
 
 .liquid-col[data-index="3"] .liquid-droplet,
 .liquid-col[data-index="3"] .liquid-base {
-  background: linear-gradient(to right, #4ade80, #22d3ee);
+  background: linear-gradient(to right, rgba(74, 222, 128, 0.95), rgba(34, 211, 238, 0.95));
 }
 .liquid-col[data-index="3"] .liquid-bar {
-  background: linear-gradient(to top, #4ade80, #22d3ee);
+  background: linear-gradient(to top, rgba(74, 222, 128, 0.8), rgba(34, 211, 238, 0.8));
 }
 
 .liquid-col[data-index="4"] .liquid-droplet,
 .liquid-col[data-index="4"] .liquid-base {
-  background: linear-gradient(to right, #facc15, #4ade80);
+  background: linear-gradient(to right, rgba(250, 204, 21, 0.95), rgba(74, 222, 128, 0.95));
 }
 .liquid-col[data-index="4"] .liquid-bar {
-  background: linear-gradient(to top, #facc15, #4ade80);
+  background: linear-gradient(to top, rgba(250, 204, 21, 0.8), rgba(74, 222, 128, 0.8));
 }
 
 .liquid-col[data-index="5"] .liquid-droplet,
 .liquid-col[data-index="5"] .liquid-base {
-  background: linear-gradient(to right, #fb923c, #facc15);
+  background: linear-gradient(to right, rgba(251, 146, 60, 0.95), rgba(250, 204, 21, 0.95));
 }
 .liquid-col[data-index="5"] .liquid-bar {
-  background: linear-gradient(to top, #fb923c, #facc15);
+  background: linear-gradient(to top, rgba(251, 146, 60, 0.8), rgba(250, 204, 21, 0.8));
 }
 
 .liquid-col[data-index="6"] .liquid-droplet,
 .liquid-col[data-index="6"] .liquid-base {
-  background: linear-gradient(to right, #ef4444, #fb923c);
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.95), rgba(251, 146, 60, 0.95));
 }
 .liquid-col[data-index="6"] .liquid-bar {
-  background: linear-gradient(to top, #ef4444, #fb923c);
+  background: linear-gradient(to top, rgba(239, 68, 68, 0.8), rgba(251, 146, 60, 0.8));
 }
 .ld-text {
   font-size: 14px;
